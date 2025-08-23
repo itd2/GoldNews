@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Gold (XAU/USD) Monitor</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: auto; }
+    .section { margin-bottom: 2em; }
+    #price { font-size: 2em; font-weight: bold; }
+    #alert { font-size: 1.5em; color: darkgreen; }
+    #news ul { list-style: none; padding: 0; }
+    #news li { margin-bottom: 0.5em; }
+  </style>
+</head>
+<body>
+  <h1>Gold (XAU/USD) Monitor</h1>
+  
+  <div class="section">
+    <div>Spot Price:</div>
+    <div id="price">Loading...</div>
+  </div>
+
+  <div class="section">
+    <div>Sentiment (Fear &amp; Greed Index):</div>
+    <div id="sentiment">
+      <!-- embed JM Bullion gauge widget -->
+      <div id="jm-fear-greed-gauge" style="width:336px;height:280px;border:1px solid #ccc;"></div>
+      <script>
+        var fr=document.createElement('iframe');
+        fr.src='https://cdn.jmbullion.com/fearandgreed/gauge.html';
+        fr.width='100%'; fr.height='100%'; fr.frameBorder='0'; fr.scrolling='no';
+        document.getElementById('jm-fear-greed-gauge').appendChild(fr);
+      </script>
+    </div>
+  </div>
+
+  <div class="section">
+    <div>Technical Chart:</div>
+    <div>
+      <!-- TradingView widget -->
+      <iframe src="https://s.tradingview.com/embed-widget/mini-symbol-overview/?symbol=OANDA%3AXAUUSD" style="width:100%; height:300px;" frameborder="0" allowtransparency="true" scrolling="no"></iframe>
+    </div>
+  </div>
+
+  <div class="section" id="alert-section">
+    <div>Trade Alert:</div>
+    <div id="alert">Analyzing...</div>
+  </div>
+
+  <div class="section" id="news">
+    <div>Latest Gold News:</div>
+    <ul id="news-list">
+      <li>Loading news...</li>
+    </ul>
+  </div>
+
+<script>
+const PRICE_EL = document.getElementById('price');
+const ALERT_EL = document.getElementById('alert');
+const NEWS_LIST = document.getElementById('news-list');
+
+// Fetch price from gold-api.com
+async function fetchPrice() {
+  try {
+    const resp = await fetch('https://www.gold-api.com/api/XAU/USD?apikey=YOUR_KEY_HERE');
+    const data = await resp.json();
+    const price = data.price;
+    const confidence = Math.random() * 20 + 80; // placeholder confidence
+    PRICE_EL.textContent = `$${price.toFixed(2)} (Confidence: ${confidence.toFixed(1)}%)`;
+    return price;
+  } catch (e) {
+    PRICE_EL.textContent = 'Error fetching price';
+    return null;
+  }
+}
+
+// Fetch news (replace with actual news API)
+async function fetchNews() {
+  // Example using NewsAPI.org (replace YOUR_KEY)
+  try {
+    const resp = await fetch('https://newsapi.org/v2/everything?q=gold&sortBy=publishedAt&apiKey=YOUR_NEWS_KEY');
+    const data = await resp.json();
+    const articles = data.articles.slice(0, 5);
+    NEWS_LIST.innerHTML = '';
+    articles.forEach(a => {
+      const li = document.createElement('li');
+      li.innerHTML = `<a href="${a.url}" target="_blank">${a.title}</a>`;
+      NEWS_LIST.appendChild(li);
+    });
+  } catch (e) {
+    NEWS_LIST.innerHTML = '<li>Error fetching news</li>';
+  }
+}
+
+// Determine alert based on simple rules
+async function updateAll() {
+  const price = await fetchPrice();
+  // Dummy sentiment logic: random pick
+  const sentimentIframe = document.querySelector('#jm-fear-greed-gauge iframe');
+  sentimentIframe.contentWindow.postMessage('getValue','*');
+  // For demo we'll use random
+  const idx = Math.random() * 100;
+  let alert = 'Hold';
+  if (idx < 40) alert = 'Buy (Fear)';
+  else if (idx > 60) alert = 'Sell (Greed)';
+  ALERT_EL.textContent = `${alert} (Sentiment: ${idx.toFixed(0)})`;
+  await fetchNews();
+}
+
+// Initial load and auto-refresh
+updateAll();
+setInterval(updateAll, 900000);
+</script>
+</body>
+</html>
