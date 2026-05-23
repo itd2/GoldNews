@@ -1,0 +1,9 @@
+streamlit>=1.35
+pandas>=2.2
+numpy>=1.26
+requests>=2.32
+plotly>=5.22
+ta>=0.11
+ccxt>=4.3
+feedparser>=6.0
+python-dotenv>=1.0
